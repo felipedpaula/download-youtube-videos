@@ -1,35 +1,75 @@
 import os
+import tkinter as tk
 from pytube import YouTube
 
-def download_video():
-    # Solicitar que o usuário insira a URL do vídeo
-    url = input("Insira a URL do vídeo do YouTube: ")
-
-    # Criar uma instância da classe YouTube com a URL do vídeo
+def pesquisar_video():
+    url = entry_url.get()
     video = YouTube(url)
 
-    # Criar a pasta 'videos' se ainda não existir
-    if not os.path.exists('videos'):
-        os.makedirs('videos')
-
-    # Obter todas as streams disponíveis para download
+    global streams
     streams = video.streams
 
-    # Listar todas as opções disponíveis de stream para o usuário escolher
-    print("Escolha uma opção de stream para baixar o vídeo:")
-    for i, stream in enumerate(streams):
-        print(f"{i+1}. {stream}")
+    options = [f"{i+1}. {stream}" for i, stream in enumerate(streams)]
 
-    # Solicitar ao usuário que insira o número correspondente à opção desejada
-    opcao = int(input("Digite o número da opção desejada: "))
+    label_feedback.config(text="Escolha uma opção de stream para baixar o vídeo:")
+    label_options.config(text='\n'.join(options))
 
-    # Baixar o vídeo na opção escolhida
-    video_path = os.path.join('videos', video.title + '.mp4')
-    streams[opcao - 1].download(output_path='videos', filename=video.title)
-    print(f"Vídeo baixado com sucesso! O vídeo foi salvo em: {video_path}")
+def download_video():
+    try:
+        option = int(entry_option.get()) - 1
+        video_path = os.path.join('videos', streams[option].title + '.mp4')
+        streams[option].download(output_path='videos', filename=streams[option].title)
+        label_feedback.config(text=f"Vídeo baixado com sucesso! O vídeo foi salvo em: {video_path}")
+    except Exception as e:
+        label_feedback.config(text="Ocorreu um erro ao baixar o vídeo. Verifique a URL e a opção escolhida.")
+        print("Erro:", e)
+
+def criar_interface():
+    # Criar a janela principal
+    root = tk.Tk()
+    root.title("Baixar Vídeo do YouTube")
+
+    # Criar um rótulo para instruir o usuário a inserir a URL
+    label_url = tk.Label(root, text="Insira a URL do vídeo do YouTube:")
+    label_url.pack()
+
+    # Criar um campo de entrada para a URL
+    global entry_url
+    entry_url = tk.Entry(root, width=50)
+    entry_url.pack()
+
+    # Criar um botão para pesquisar o vídeo
+    button_pesquisar = tk.Button(root, text="Pesquisar", command=pesquisar_video)
+    button_pesquisar.pack()
+
+    # Criar um rótulo para exibir as opções de stream
+    global label_options
+    label_options = tk.Label(root, text="")
+    label_options.pack()
+
+    # Criar um rótulo para instruir o usuário a escolher uma opção
+    label_option = tk.Label(root, text="Digite o número da opção de stream desejada:")
+    label_option.pack()
+
+    # Criar um campo de entrada para a opção
+    global entry_option
+    entry_option = tk.Entry(root, width=5)
+    entry_option.pack()
+
+    # Criar um botão para iniciar o download
+    button_download = tk.Button(root, text="Baixar Vídeo", command=download_video)
+    button_download.pack()
+
+    # Criar um rótulo para exibir feedback
+    global label_feedback
+    label_feedback = tk.Label(root, text="")
+    label_feedback.pack()
+
+    # Executar o loop principal
+    root.mainloop()
 
 def main():
-    download_video()
+    criar_interface()
 
 if __name__ == "__main__":
     main()
